@@ -1,0 +1,39 @@
+
+services:
+  ackend:
+    build:
+      context: ./Backend
+    ports:
+      - "4000:4000"
+    networks:
+      - quickcab-network
+    env_file:
+      - ./Backend/.env
+    depends_on:
+      - MongoDB
+
+  frontend:
+    build:
+      context: ./Frontend
+    ports:
+      - "5173:5173"
+    networks:
+      - quickcab-network
+    env_file:
+      - ./Frontend/.env
+
+  MongoDB:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - quickcab-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  quickcab-network:
+    driver: bridge
