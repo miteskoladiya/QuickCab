@@ -12,29 +12,26 @@ const CaptainLogin = () => {
 const {captain, setCaptain} = React.useContext(CaptainDataContext);
 const navigate = useNavigate();
 
-  const submitHandler =async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    //console.log(email, password );
-    const captainData = {
-      email: email,
-      password: password
+    try {
+        const response = await axios.post(
+            `${import.meta.env.VITE_BASE_URL}/captains/login`,
+            { email, password }
+        );
+
+        if (response.data.token) {
+            // Add Bearer prefix when storing token
+            localStorage.setItem('token', `Bearer ${response.data.token}`);
+            setCaptain(response.data.captain);
+            navigate('/captain-home');
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        alert('Login failed. Please check your credentials.');
     }
-    //console.log(captainData);
+};
 
-    const response=await axios.post(`${import.meta.env.VITE_BASE_URL}/captains/login`, captainData);
-
-    if(response.status===200){
-      const data= response.data;
-
-      setCaptain(data.captain);
-      
-      localStorage.setItem('token'  , data.token);
-      navigate('/captain-home');
-    }
-
-    setEmail('');
-    setPassword('');
-  }
   return (
     <div>
       <div className='p-7 h-screen  flex flex-col justify-between'>
@@ -46,7 +43,7 @@ const navigate = useNavigate();
           />
 
           <form onSubmit={(e) => {
-            submitHandler(e);
+            handleLogin(e);
           }}>
 
             <h3 className="text-lg font-medium mb-2">What's your email</h3>
@@ -68,9 +65,11 @@ const navigate = useNavigate();
             <button className="bg-[#111] text-white font-semibold mb-3 rounded px-4 py-2  w-full text-lg placeholder:text-base">Login</button>
 
           </form>
-          <p className='text-center'>Join a fleet?<Link to='/Captain-Signup'
-            className="text-blue-600">Register as a captain
-          </Link>
+          <p className='text-center'>Join a fleet?
+            <Link to='/captain-signup' // Changed from /Captain-Signup
+              className="text-blue-600">
+              Register as a captain
+            </Link>
           </p>
         </div>
         <div>

@@ -5,15 +5,31 @@ const mapController = require('../controllers/maps.controller');
 const { query } = require('express-validator');
 
 router.get('/get-coordinates',
-    query('address').isString().isLength({ min: 3 }), authMiddleware.authUser, mapController.getCoordinates);
+    query('address').isString().isLength({ min: 3 }),
+    authMiddleware.authUser,
+    mapController.getCoordinates
+);
 
 router.get('/get-distance-time',
     query('origin').isString().isLength({ min: 3 }),
-    query('destination').isString().isLength({ min: 3 }), authMiddleware.authUser, mapController.getDistanceTime);
+    query('destination').isString().isLength({ min: 3 }),
+    authMiddleware.authUser,
+    mapController.getDistanceTime
+)
 
 router.get('/get-suggestions',
-    query('input').isString().isLength({min:3}),
-    authMiddleware.authUser,mapController.getAutoCompleteSuggestions
+    query('input').isString().isLength({ min: 3 }),
+    authMiddleware.authUser,
+    mapController.getAutoCompleteSuggestions
+)
+
+// Add this new route
+router.get('/reverse-geocode',
+    query('lat').isNumeric(),
+    query('lng').isNumeric(),
+    authMiddleware.authUser,
+    mapController.reverseGeocode
 );
+
 
 module.exports = router;

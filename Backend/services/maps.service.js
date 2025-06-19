@@ -3,7 +3,7 @@ const captainModel = require('../models/captain.model');
 
 module.exports.getAddressCoordinate = async (address) => {
     const apiKey = process.env.GOOGLE_MAPS_API;
-    const url = `https://maps.gomaps.pro/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
 
     try {
         const response = await axios.get(url);
@@ -28,17 +28,13 @@ module.exports.getDistanceTime = async (origin, destination) => {
     }
 
     const apiKey = process.env.GOOGLE_MAPS_API;
-    
-    if (!apiKey) {
-        throw new Error('Google Maps API key is missing');
-    }
-    
 
-    const url = `https://maps.gomaps.pro/maps/api/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&key=${apiKey}`;
+    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&key=${apiKey}`;
 
     try {
+
+
         const response = await axios.get(url);
-        //console.log(response);
         if (response.data.status === 'OK') {
 
             if (response.data.rows[ 0 ].elements[ 0 ].status === 'ZERO_RESULTS') {
@@ -62,17 +58,12 @@ module.exports.getAutoCompleteSuggestions = async (input) => {
     }
 
     const apiKey = process.env.GOOGLE_MAPS_API;
-    const url = `https://maps.gomaps.pro/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${apiKey}`;
-
+    const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&key=${apiKey}`;
 
     try {
         const response = await axios.get(url);
-
-        //console.log(response);
         if (response.data.status === 'OK') {
-            return response.data.predictions;
-
-            //return response.data.predictions.map(prediction => prediction.description).filter(value => value);
+            return response.data.predictions.map(prediction => prediction.description).filter(value => value);
         } else {
             throw new Error('Unable to fetch suggestions');
         }
@@ -82,87 +73,23 @@ module.exports.getAutoCompleteSuggestions = async (input) => {
     }
 }
 
-
-// module.exports.getAddressCoordinate = async (address) => {
-//     const apiKey = process.env.GOOGLE_MAPS_API;
-//     const url = `https://api.maptiler.com/geocoding/${encodeURIComponent(address)}.json?key=${apiKey}`;
-
-//     try {
-//         const response = await axios.get(url);
-//         if (response.data.features && response.data.features.length > 0) {
-//             const location = response.data.features[0].geometry.coordinates;
-//             return {
-//                 ltd: location[1],  // Latitude
-//                 lng: location[0]   // Longitude
-//             };
-//         } else {
-//             throw new Error('Unable to fetch coordinates');
-//         }
-//     } catch (error) {
-//         console.error(error);
-//         throw error;
-//     }
-// };
-
-
-// module.exports.getDistanceTime = async (origin, destination) => {
-//     if (!origin || !destination) {
-//         throw new Error('Origin and destination are required');
-//     }
-
-//     const apiKey = process.env.GOOGLE_MAPS_API;  // Ensure you have the correct API key here
-//     const url = `https://api.maptiler.com/routing/route/v1/driving/${encodeURIComponent(origin)};${encodeURIComponent(destination)}?key=${apiKey}`;
-
-//     try {
-//         const response = await axios.get(url);
-
-//         if (response.data.routes && response.data.routes.length > 0) {
-//             const route = response.data.routes[0];
-//             return {
-//                 distance: route.distance,  // in meters
-//                 duration: route.duration   // in seconds
-//             };
-//         } else {
-//             throw new Error('Unable to fetch distance and time');
-//         }
-//     } catch (err) {
-//         console.error("Error:", err.response ? err.response.data : err.message);
-//         throw new Error('Error fetching distance and time from MapTiler API');
-//     }
-// }
-
-// module.exports.getAutoCompleteSuggestions = async (input) => {
-//     if (!input) {
-//         throw new Error('Query is required');
-//     }
-
-//     const apiKey = process.env.GOOGLE_MAPS_API;  
-//     const url = `https://api.maptiler.com/geocoding/${encodeURIComponent(input)}.json?key=${apiKey}&autocomplete=true`;
-
-//     try {
-//         const response = await axios.get(url);
-//         if (response.data.features) {
-//             return response.data.features.map((feature) => ({
-//                 description: feature.place_name,
-//                 coordinates: feature.geometry.coordinates,
-//             }));
-//         } else {
-//             throw new Error('Unable to fetch suggestions');
-//         }
-//     } catch (err) {
-//         console.error('Error fetching suggestions:', err);
-//         throw err;
-//     }
-// };
-
 module.exports.getCaptainsInTheRadius = async (ltd, lng, radius) => {
-    // radius in km
-    const captains = await captainModel.find({
-        location: {
-            $geoWithin: {
-                $centerSphere: [ [ ltd, lng ], radius / 6371 ]
-            }
-        }
-    });
-    return captains;
-}
+    try {
+        // Find active captains
+        const captains = await captainModel.find({
+            status: 'active'
+            // Temporarily remove location filter for testing
+            // location: {
+            //     $geoWithin: {
+            //         $centerSphere: [[lng, ltd], radius / 6371]
+            //     }
+            // }
+        });
+
+        console.log(`Found ${captains.length} active captains`);
+        return captains;
+    } catch (error) {
+        console.error('Error finding captains:', error);
+        throw error;
+    }
+};

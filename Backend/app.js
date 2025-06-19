@@ -12,7 +12,10 @@ const rideRoutes=require('./routes/ride.routes');
 
 connectToDb();
 app.use(cookieParser());
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173", // Your frontend URL
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 
@@ -26,7 +29,7 @@ app.use('/users',userRoutes);
 
 //Captain routes
 app.use('/captains',captainRoutes);
-
+    ``
 //Maps routes
 app.use('/maps',mapsRoutes);
 
